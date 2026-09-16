@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>标题页自检</title>
+<style>
+  html,body{margin:0;padding:0;height:100%;overflow:hidden;background:#05080c}
+  #wrap{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
+  #game{display:block;touch-action:none;background:#0a1018}
+</style>
+</head>
+<body>
+  <div id="wrap"><canvas id="game" width="1920" height="1080"></canvas></div>
+  <script src="../game.js"></script>
+  <script>
+  /* 标题页自检：两个模式卡片是否正常绘制（真实 Canvas 像素） */
+  setTimeout(function () {
+    // 无头环境下 rAF 不一定推进，主动驱动几帧确保画布已经渲染
+    var A = window.__BEE__.api;
+    for (var f = 0; f < 6; f++) A.step(1 / 60);
+    var cv = document.getElementById('game');
+    var c = cv.getContext('2d');
+    var W = cv.width, H = cv.height, SC = W / 1920;
+    var d = c.getImageData(0, 0, W, H).data;
+    function region(lx, ly, lw, lh) { return region2(d, lx, ly, lw, lh); }
+    function region2(dd, lx, ly, lw, lh) {
+      var x0 = Math.max(0, Math.round(lx * SC)), y0 = Math.max(0, Math.round(ly * SC));
+      var x1 = Math.min(W, Math.round((lx + lw) * SC)), y1 = Math.min(H, Math.round((ly + lh) * SC));
+      var t = 0, bright = 0, blue = 0, gold = 0;
+      for (var y = y0; y < y1; y += 2) for (var x = x0; x < x1; x += 2) {
+        var i = (y * W + x) * 4, r = dd[i], g = dd[i + 1], b = dd[i + 2];
+        t++;
+        if (Math.max(r, g, b) > 60) bright++;
+        if (b > 150 && b - r > 40) blue++;
+        if (r > 200 && g > 160 && b < 140) gold++;
+      }
+      return { n: t, bright: +(bright / t).toFixed(3), blue: +(blue / t).toFixed(3), gold: +(gold / t).toFixed(3) };
+    }
+    var st = window.__BEE__.state();
+    var api = window.__BEE__.api;
+    var allBright = 0, allN = 0;
+    for (var yy = 0; yy < H; yy += 4) for (var xx = 0; xx < W; xx += 4) {
+      var ii = (yy * W + xx) * 4;
+      allN++;
+      if (Math.max(d[ii], d[ii + 1], d[ii + 2]) > 60) allBright++;
+    }
+    var out = {
+      state: { mode: st.mode, gameType: st.gameType, renderStage: st.renderStage, frames: st.frames },
+      canvas: W + 'x' + H, brightRatio: +(allBright / allN).toFixed(3),
+      title: region(400, 280, 1120, 160),
+      subtitle: region(500, 390, 920, 50),
+      menu: region(740, 490, 440, 200),
+      best: region(450, 660, 1020, 50),
+      hint: region(600, 735, 720, 55),
+      cards: api.measureCards().filter(function (c) { return !(c.nameFits && c.descFits); }).map(function (c) { return c.id; })
+    };
+
+    /* 按 2 打开操作说明，再采样一次 */
+    window.dispatchEvent(new KeyboardEvent('keydown', { code: 'Digit2' }));
+    for (var g = 0; g < 4; g++) A.step(1 / 60);
+    var d2 = c.getImageData(0, 0, W, H).data;
+    out.helpMenu = region2(d2, 510, 200, 900, 620);
+    out.helpState = window.__BEE__.state().mode;
+    // 返回主菜单
+    window.dispatchEvent(new KeyboardEvent('keydown', { code: 'Escape' }));
+    for (var h = 0; h < 4; h++) A.step(1 / 60);
+    var pre = document.createElement('pre');
+    pre.id = 'diag';
+    pre.textContent = 'DIAG_JSON=' + JSON.stringify(out) + '=END_DIAG';
+    document.body.appendChild(pre);
+  }, 2500);
+  </script>
+</body>
+</html>

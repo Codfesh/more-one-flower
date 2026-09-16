@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0a1018">
+<title>再采一朵</title>
+<style>
+  html, body {
+    margin: 0; padding: 0; height: 100%; overflow: hidden;
+    background: #05080c;
+    font-family: 'Segoe UI', 'Microsoft YaHei', 'PingFang SC', system-ui, sans-serif;
+    -webkit-user-select: none; user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior: none;
+  }
+  #wrap {
+    position: fixed; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+  #game {
+    display: block;
+    touch-action: none;
+    background: #0a1018;
+    box-shadow: 0 0 60px rgba(0, 0, 0, .8);
+    cursor: crosshair;
+  }
+  #noscript {
+    color: #cfe3f5; text-align: center; padding: 40px; font-size: 18px;
+  }
+</style>
+</head>
+<body>
+  <div id="wrap"><canvas id="game" width="1920" height="1080"></canvas></div>
+  <noscript><div id="noscript">本游戏需要启用 JavaScript。</div></noscript>
+  <script src="game.js"></script>
+</body>
+</html>
